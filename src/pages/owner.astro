@@ -91,6 +91,27 @@ import '../styles/global.css';
       .image-result.show { display: grid; gap: 10px; }
       .image-url { width: 100%; padding: 9px 11px; border: 1px solid var(--line-strong); border-radius: 10px; background: rgba(255,254,250,.88); color: var(--accent-dark); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; overflow-wrap: anywhere; }
       .image-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .editing-note { display: none; padding: 11px 13px; border: 1px solid rgba(57,127,159,.18); border-radius: 12px; background: var(--accent-faint); color: var(--accent-dark); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+      .editing-note.show { display: block; }
+      .manage-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
+      .manage-tabs { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line-strong); border-radius: 12px; background: rgba(255,254,250,.68); }
+      .manage-tab { position: relative; }
+      .manage-tab input { position: absolute; opacity: 0; pointer-events: none; }
+      .manage-tab span { display: block; padding: 7px 12px; border-radius: 9px; color: var(--muted); font-size: 12px; cursor: pointer; }
+      .manage-tab input:checked + span { background: var(--surface-solid); color: var(--ink); box-shadow: var(--shadow-xs); }
+      .manage-filter { margin-bottom: 12px; }
+      .manage-filter input { width: 100%; height: 42px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 12px; background: rgba(255,254,250,.9); outline: none; }
+      .manage-filter input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(57,127,159,.1); }
+      .manage-list { display: grid; gap: 10px; }
+      .manage-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 15px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,254,250,.72); }
+      .manage-item h3 { margin: 0 0 5px; font-size: 15px; line-height: 1.55; }
+      .manage-meta { color: var(--faint); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+      .manage-item-actions { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+      .manage-button { min-height: 34px; padding: 6px 10px; border: 1px solid var(--line-strong); border-radius: 9px; background: rgba(255,254,250,.82); color: var(--ink-soft); font-size: 12px; cursor: pointer; }
+      .manage-button:hover { border-color: #afc6cc; color: var(--accent-dark); }
+      .manage-button.danger { color: #93443d; }
+      .manage-button.danger:hover { border-color: rgba(147,68,61,.36); background: #faeeee; color: #7e3630; }
+      .manage-empty { padding: 24px; border: 1px dashed #b9cdd2; border-radius: 14px; color: var(--muted); font-size: 13px; text-align: center; }
       .owner-status { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.8; }
       .owner-status.show { display: block; }
       .owner-status.success { border: 1px solid rgba(57,127,159,.22); background: var(--accent-faint); color: var(--accent-dark); }
@@ -103,6 +124,9 @@ import '../styles/global.css';
         .owner-card { padding: 19px; border-radius: 18px; }
         .owner-card > h1 { font-size: 27px; }
         .owner-grid, .type-grid, .token-row, .image-grid { grid-template-columns: 1fr; }
+        .manage-toolbar, .manage-item { align-items: stretch; grid-template-columns: 1fr; }
+        .manage-toolbar { flex-direction: column; }
+        .manage-item-actions { justify-content: flex-start; }
         .owner-field textarea { min-height: 150px; }
       }
     </style>
@@ -161,6 +185,8 @@ import '../styles/global.css';
               </label>
             </div>
           </div>
+
+          <div id="editing-note" class="editing-note"></div>
 
           <div class="owner-grid">
             <label class="owner-field">
@@ -225,6 +251,7 @@ import '../styles/global.css';
 
           <div class="owner-submit-row">
             <button class="owner-submit" id="submit-button" type="submit">提交并更新网站</button>
+            <button class="owner-secondary" id="new-content" type="button" hidden>改为新增内容</button>
             <button class="owner-secondary" id="copy-markdown" type="button">复制 Markdown</button>
             <a class="owner-link" href="https://github.com/lantianyaqwq/lantianyaqwq.github.io/actions" target="_blank" rel="noreferrer">查看部署状态</a>
           </div>
@@ -264,6 +291,29 @@ import '../styles/global.css';
           <span class="owner-field"><span>图片地址</span><code id="image-url" class="image-url"></code></span>
         </div>
       </section>
+
+      <section class="owner-card" aria-labelledby="manage-title">
+        <h2 id="manage-title">编辑和管理已发布内容</h2>
+        <p class="owner-intro">读取 GitHub 仓库中已经发布的资源与资讯，可载入上方表单修改，或在确认后删除。修改保存后仍会由 GitHub Actions 自动发布。</p>
+        <div class="manage-toolbar">
+          <div class="manage-tabs" aria-label="内容类型">
+            <label class="manage-tab">
+              <input type="radio" name="manage-type" value="resource" checked />
+              <span>网络资源</span>
+            </label>
+            <label class="manage-tab">
+              <input type="radio" name="manage-type" value="news" />
+              <span>热门资讯</span>
+            </label>
+          </div>
+          <button class="owner-small-button" id="refresh-manage" type="button">读取文章列表</button>
+        </div>
+        <label class="manage-filter" for="manage-search">
+          <input id="manage-search" type="search" placeholder="按标题、分类或文件名筛选" autocomplete="off" />
+        </label>
+        <div id="manage-list" class="manage-list"></div>
+        <div id="manage-status" class="owner-status" role="status" aria-live="polite"></div>
+      </section>
     </main>
 
     <script>
@@ -285,8 +335,17 @@ import '../styles/global.css';
       const imageStatusBox = document.querySelector<HTMLDivElement>('#image-status');
       const imageResult = document.querySelector<HTMLDivElement>('#image-result');
       const imageUrl = document.querySelector<HTMLElement>('#image-url');
+      const editingNote = document.querySelector<HTMLDivElement>('#editing-note');
+      const newContentButton = document.querySelector<HTMLButtonElement>('#new-content');
+      const manageList = document.querySelector<HTMLDivElement>('#manage-list');
+      const manageStatus = document.querySelector<HTMLDivElement>('#manage-status');
+      const manageSearch = document.querySelector<HTMLInputElement>('#manage-search');
+      const refreshManageButton = document.querySelector<HTMLButtonElement>('#refresh-manage');
       let currentImageMarkdown = '';
       let currentImageFile: File | null = null;
+      let manageItems: Array<{ name: string; path: string; title: string; category: string; date: string }> = [];
+      let currentEditingPath = '';
+      let manageLoaded = false;
       const fields = {
         title: document.querySelector<HTMLInputElement>('#title'),
         published: document.querySelector<HTMLInputElement>('#published'),
@@ -394,6 +453,188 @@ import '../styles/global.css';
 
       function markdownAlt(value: string) {
         return value.trim().replace(/[[\]]/g, '') || '图片';
+      }
+
+      function setManageStatus(message: string, type: 'success' | 'error' | '' = '') {
+        if (!manageStatus) return;
+        manageStatus.className = 'owner-status';
+        manageStatus.replaceChildren();
+        if (!message) return;
+        manageStatus.classList.add('show', type);
+        manageStatus.append(message);
+      }
+
+      function getManageType() {
+        return document.querySelector<HTMLInputElement>('input[name="manage-type"]:checked')?.value ?? 'resource';
+      }
+
+      function decodeBase64Utf8(content: string) {
+        const binary = atob(content.replace(/\n/g, ''));
+        const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+      }
+
+      function parseMarkdownFile(content: string) {
+        const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+        if (!match) return { frontmatter: {} as Record<string, string>, body: content.trim() };
+        const frontmatter: Record<string, string> = {};
+        match[1].split(/\r?\n/).forEach((line) => {
+          const separator = line.indexOf(':');
+          if (separator < 1) return;
+          const key = line.slice(0, separator).trim();
+          let value = line.slice(separator + 1).trim();
+          if (value.startsWith('"') && value.endsWith('"')) {
+            value = value.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+          }
+          frontmatter[key] = value;
+        });
+        return { frontmatter, body: match[2].trim() };
+      }
+
+      function setEditingState(path: string) {
+        currentEditingPath = path;
+        if (fields.slug) fields.slug.readOnly = Boolean(path);
+        if (editingNote) {
+          editingNote.textContent = `正在编辑：${path}。保存时会更新原文件；如果需要重新写一篇，请点击“改为新增内容”。`;
+          editingNote.classList.toggle('show', Boolean(path));
+        }
+        if (newContentButton) newContentButton.hidden = !path;
+      }
+
+      function renderManageList() {
+        if (!manageList) return;
+        manageList.replaceChildren();
+        const keyword = (manageSearch?.value.trim() ?? '').toLocaleLowerCase('zh-CN');
+        const visibleItems = manageItems.filter((item) => {
+          const text = `${item.title} ${item.category} ${item.name}`.toLocaleLowerCase('zh-CN');
+          return !keyword || text.includes(keyword);
+        });
+        if (visibleItems.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'manage-empty';
+          empty.textContent = !manageLoaded ? '输入令牌后，点击“读取文章列表”。' : (manageItems.length === 0 ? '这个分类还没有已发布内容。' : '没有匹配的内容，换个关键词试试。');
+          manageList.append(empty);
+          return;
+        }
+        visibleItems.forEach((item) => {
+          const article = document.createElement('article');
+          article.className = 'manage-item';
+          const copy = document.createElement('div');
+          const title = document.createElement('h3');
+          title.textContent = item.title || item.name;
+          const meta = document.createElement('div');
+          meta.className = 'manage-meta';
+          meta.textContent = `${item.category || '未分类'} · ${item.date || '未注明日期'} · ${item.name}`;
+          copy.append(title, meta);
+          const actions = document.createElement('div');
+          actions.className = 'manage-item-actions';
+          const edit = document.createElement('button');
+          edit.type = 'button';
+          edit.className = 'manage-button';
+          edit.textContent = '编辑';
+          edit.addEventListener('click', () => loadManageItem(item));
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'manage-button danger';
+          remove.textContent = '删除';
+          remove.addEventListener('click', () => deleteManageItem(item));
+          actions.append(edit, remove);
+          article.append(copy, actions);
+          manageList.append(article);
+        });
+      }
+
+      async function refreshManageList() {
+        if (!manageList) return;
+        manageList.replaceChildren();
+        setManageStatus('');
+        manageLoaded = false;
+        if (!tokenInput?.value.trim()) {
+          setManageStatus('请先输入 GitHub 访问令牌，再读取文章列表。', 'error');
+          return;
+        }
+        if (refreshManageButton) {
+          refreshManageButton.disabled = true;
+          refreshManageButton.textContent = '正在读取…';
+        }
+        try {
+          await github('');
+          const directory = getManageType() === 'resource' ? 'src/content/resources' : 'src/content/news';
+          const entries = await github(`/contents/${encodePath(directory)}?ref=main`);
+          const files = Array.isArray(entries) ? entries.filter((entry) => entry.type === 'file' && entry.name.endsWith('.md')) : [];
+          const loaded = [];
+          for (const entry of files) {
+            const file = await github(`/contents/${encodePath(entry.path)}?ref=main`);
+            const parsed = parseMarkdownFile(decodeBase64Utf8(file.content ?? ''));
+            loaded.push({
+              name: entry.name,
+              path: entry.path,
+              title: parsed.frontmatter.title ?? entry.name,
+              category: parsed.frontmatter.category ?? '',
+              date: parsed.frontmatter.published ?? '',
+            });
+          }
+          manageItems = loaded.sort((a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name));
+          manageLoaded = true;
+          renderManageList();
+          setManageStatus(`已读取 ${manageItems.length} 篇内容。`, 'success');
+        } catch (error) {
+          manageItems = [];
+          renderManageList();
+          setManageStatus(error instanceof Error ? error.message : '读取文章列表失败。', 'error');
+        } finally {
+          if (refreshManageButton) {
+            refreshManageButton.disabled = false;
+            refreshManageButton.textContent = '读取文章列表';
+          }
+        }
+      }
+
+      async function loadManageItem(item: { name: string; path: string }) {
+        try {
+          setManageStatus('');
+          const file = await github(`/contents/${encodePath(item.path)}?ref=main`);
+          const parsed = parseMarkdownFile(decodeBase64Utf8(file.content ?? ''));
+          const type = item.path.includes('/resources/') ? 'resource' : 'news';
+          document.querySelectorAll<HTMLInputElement>('input[name="type"]').forEach((input) => {
+            input.checked = input.value === type;
+          });
+          updateTypeFields();
+          if (fields.title) fields.title.value = parsed.frontmatter.title ?? '';
+          if (fields.published) fields.published.value = parsed.frontmatter.published || localDate();
+          if (fields.category) fields.category.value = parsed.frontmatter.category ?? '';
+          if (fields.slug) fields.slug.value = item.name.replace(/\.md$/, '');
+          if (fields.platform) fields.platform.value = parsed.frontmatter.platform ?? '';
+          if (fields.license) fields.license.value = parsed.frontmatter.license ?? '';
+          if (fields.resourceLink) fields.resourceLink.value = '';
+          if (fields.source) fields.source.value = parsed.frontmatter.source ?? 'BlueSky 每周精选';
+          if (fields.sourceLink) fields.sourceLink.value = '';
+          if (fields.description) fields.description.value = parsed.frontmatter.description ?? '';
+          if (fields.body) fields.body.value = parsed.body;
+          setEditingState(item.path);
+          setStatus(`已载入“${parsed.frontmatter.title ?? item.name}”，修改后点击提交即可更新原文件。`, 'success');
+          form?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (error) {
+          setStatus(error instanceof Error ? error.message : '载入文章失败。', 'error');
+        }
+      }
+
+      async function deleteManageItem(item: { name: string; path: string; title: string }) {
+        const confirmed = window.confirm(`确定删除“${item.title}”吗？\n\n这会从 GitHub 仓库中移除 ${item.path}，公开网站随后也会删除该内容。此操作需要以后通过 Git 历史记录才能恢复。`);
+        if (!confirmed) return;
+        try {
+          setManageStatus('正在删除…');
+          const file = await github(`/contents/${encodePath(item.path)}?ref=main`);
+          await github(`/contents/${encodePath(item.path)}`, {
+            method: 'DELETE',
+            body: { message: `Delete content: ${item.title}`, sha: file.sha, branch: 'main' },
+          });
+          if (currentEditingPath === item.path) setEditingState('');
+          setManageStatus('删除成功，列表已刷新。', 'success');
+          await refreshManageList();
+        } catch (error) {
+          setManageStatus(error instanceof Error ? error.message : '删除失败，请稍后重试。', 'error');
+        }
       }
 
       function getType() {
@@ -524,6 +765,29 @@ import '../styles/global.css';
         input.addEventListener('change', updateTypeFields);
       });
 
+      document.querySelectorAll<HTMLInputElement>('input[name="manage-type"]').forEach((input) => {
+        input.addEventListener('change', refreshManageList);
+      });
+
+      refreshManageButton?.addEventListener('click', refreshManageList);
+      manageSearch?.addEventListener('input', renderManageList);
+
+      newContentButton?.addEventListener('click', () => {
+        setEditingState('');
+        if (fields.title) fields.title.value = '';
+        if (fields.category) fields.category.value = '';
+        if (fields.slug) fields.slug.value = '';
+        if (fields.platform) fields.platform.value = '';
+        if (fields.license) fields.license.value = '';
+        if (fields.resourceLink) fields.resourceLink.value = '';
+        if (fields.source) fields.source.value = 'BlueSky 每周精选';
+        if (fields.sourceLink) fields.sourceLink.value = '';
+        if (fields.description) fields.description.value = '';
+        if (fields.body) fields.body.value = '';
+        if (fields.published) fields.published.value = localDate();
+        setStatus('已切换为新增内容。', 'success');
+      });
+
       document.querySelector<HTMLButtonElement>('#toggle-token')?.addEventListener('click', () => {
         if (!tokenInput) return;
         tokenInput.type = tokenInput.type === 'password' ? 'text' : 'password';
@@ -643,6 +907,10 @@ import '../styles/global.css';
         setStatus('');
         saveTokenPreference();
         const data = getFormData();
+        if (currentEditingPath) {
+          const originalSlug = currentEditingPath.split('/').pop()?.replace(/\.md$/, '');
+          if (originalSlug) data.slug = originalSlug;
+        }
         if (!/^[a-z0-9][a-z0-9-]{1,80}$/.test(data.slug)) {
           setStatus('文件名只能使用小写英文、数字和连字符，并以字母或数字开头。', 'error');
           return;
@@ -672,6 +940,8 @@ import '../styles/global.css';
           if (fields.slug) fields.slug.value = '';
           if (fields.resourceLink) fields.resourceLink.value = '';
           if (fields.sourceLink) fields.sourceLink.value = '';
+          setEditingState('');
+          void refreshManageList();
         } catch (error) {
           const message = error instanceof Error ? error.message : '提交失败，请稍后重试。';
           setStatus(message.includes('403') ? `${message} 请确认令牌只授权了目标仓库，并且 Contents 权限为 Read and write。` : message, 'error');
@@ -685,6 +955,9 @@ import '../styles/global.css';
       if (storedToken && tokenInput && rememberToken) {
         tokenInput.value = storedToken;
         rememberToken.checked = true;
+        void refreshManageList();
+      } else {
+        renderManageList();
       }
       updateTypeFields();
     </script>
