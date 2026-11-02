@@ -1,0 +1,66 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'BlueSky',
+  description = 'BlueSky 的资源分享博客，整理免费资源与每周热门资讯。',
+} = Astro.props;
+const pathname = Astro.url.pathname;
+const navItems = [
+  { href: '/', label: '首页' },
+  { href: '/resources/', label: '网络资源' },
+  { href: '/news/', label: '热门资讯' },
+  { href: '/about/', label: '关于我' },
+];
+const isCurrent = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href);
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f7f6f2" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content={title === 'BlueSky' ? 'BlueSky · 资源分享与每周精选' : `${title} · BlueSky`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href} />
+    <link rel="alternate" type="application/rss+xml" title="BlueSky RSS" href={new URL('rss.xml', Astro.site ?? Astro.url.origin).href} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title === 'BlueSky' ? 'BlueSky · 资源分享与每周精选' : `${title} · BlueSky`}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到正文</a>
+    <header class="site-header">
+      <div class="shell header-inner">
+        <a class="brand" href="/" aria-label="BlueSky 首页">BlueSky<span aria-hidden="true">.</span></a>
+        <nav class="main-nav" aria-label="主导航">
+          {navItems.map((item) => (
+            <a href={item.href} class:list={[{ active: isCurrent(item.href) }]} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="shell page-main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell footer-inner">
+        <p><strong>BlueSky<span aria-hidden="true">.</span></strong> 免费资源与每周精选</p>
+        <p>由 BlueSky 持续整理，通常每周更新。</p>
+      </div>
+    </footer>
+  </body>
+</html>

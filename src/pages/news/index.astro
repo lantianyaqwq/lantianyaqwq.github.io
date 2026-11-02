@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const news = (await getCollection('news'))
+  .sort((a, b) => b.data.published.getTime() - a.data.published.getTime());
+const formatDate = (date: Date) => new Intl.DateTimeFormat('zh-CN', {
+  year: 'numeric', month: '2-digit', day: '2-digit',
+}).format(date);
+---
+
+<BaseLayout title="热门资讯" description="BlueSky 的每周热门资讯精选，保留来源、日期与简短点评。">
+  <header class="page-heading">
+    <p class="eyebrow">Weekly Selection</p>
+    <h1>热门资讯</h1>
+    <p>不追求实时和全面，只挑选每周真正值得留意的消息，并留下来源和简短点评。</p>
+  </header>
+
+  {news.length === 0 && (
+    <div class="empty-page">
+      <p class="eyebrow">Weekly Selection</p>
+      <h2>还没有热门资讯</h2>
+      <p>等 BlueSky 选出第一批值得分享的消息，这里就会开始更新。</p>
+    </div>
+  )}
+
+  <div class:list={["news-archive", { empty: news.length === 0 }]}>
+    {news.map((entry) => (
+      <article class="news-item" id={entry.id}>
+        <time class="news-date" datetime={entry.data.published.toISOString()}>{formatDate(entry.data.published)}</time>
+        <div>
+          <div class="item-meta"><span>{entry.data.category}</span></div>
+          <h3>{entry.data.title}</h3>
+          <p>{entry.data.description}</p>
+          <span class="news-source">来源：{entry.data.source}</span>
+        </div>
+      </article>
+    ))}
+  </div>
+</BaseLayout>

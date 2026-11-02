@@ -1,0 +1,76 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const resources = (await getCollection('resources'))
+  .sort((a, b) => b.data.published.getTime() - a.data.published.getTime());
+const formatDate = (date: Date) => new Intl.DateTimeFormat('zh-CN', {
+  year: 'numeric', month: '2-digit', day: '2-digit',
+}).format(date);
+---
+
+<BaseLayout title="网络资源" description="BlueSky 整理的免费游戏、工具与网络资源。">
+  <header class="page-heading">
+    <p class="eyebrow">Resource Index</p>
+    <h1>网络资源</h1>
+    <p>游戏、工具和网站，只收录免费资源。每项都写清用途、平台与注意事项。</p>
+  </header>
+
+  {resources.length > 0 && (
+    <div class="archive-tools">
+      <label class="search-label" for="resource-search">
+        搜索标题、分类或平台
+        <input id="resource-search" type="search" placeholder="例如：影音工具、Windows" autocomplete="off" />
+      </label>
+      <span class="archive-count"><span id="result-count">{resources.length}</span> 条资源</span>
+    </div>
+  )}
+
+  <div class="resource-list resource-archive">
+    {resources.map((entry) => (
+      <article
+        class="resource-item"
+        data-resource
+        data-search={`${entry.data.title} ${entry.data.description} ${entry.data.category} ${entry.data.platform} ${entry.data.license}`}
+      >
+        <div class="item-meta">
+          <span>{entry.data.category}</span>
+          <time datetime={entry.data.published.toISOString()}>{formatDate(entry.data.published)}</time>
+        </div>
+        <h3><a href={`/resources/${entry.id}/`}>{entry.data.title}</a></h3>
+        <p>{entry.data.description}</p>
+        <div class="item-foot">
+          <span>{entry.data.platform}</span>
+          <span>{entry.data.license}</span>
+        </div>
+      </article>
+    ))}
+  </div>
+  {resources.length === 0 && (
+    <div class="empty-page">
+      <p class="eyebrow">Resource Index</p>
+      <h2>还没有收录资源</h2>
+      <p>等 BlueSky 准备好第一批资源，这里就会开始更新。</p>
+    </div>
+  )}
+  <p id="empty-state" class="empty-state" hidden>没有找到匹配的资源，换个关键词试试。</p>
+
+  <script>
+    const input = document.querySelector<HTMLInputElement>('#resource-search');
+    const items = Array.from(document.querySelectorAll<HTMLElement>('[data-resource]'));
+    const count = document.querySelector<HTMLElement>('#result-count');
+    const empty = document.querySelector<HTMLElement>('#empty-state');
+
+    input?.addEventListener('input', () => {
+      const keyword = input.value.trim().toLocaleLowerCase('zh-CN');
+      let visible = 0;
+      items.forEach((item) => {
+        const matches = (item.dataset.search ?? '').toLocaleLowerCase('zh-CN').includes(keyword);
+        item.hidden = !matches;
+        if (matches) visible += 1;
+      });
+      if (count) count.textContent = String(visible);
+      if (empty) empty.hidden = visible !== 0;
+    });
+  </script>
+</BaseLayout>

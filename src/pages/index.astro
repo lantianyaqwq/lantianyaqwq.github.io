@@ -1,0 +1,84 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const resources = (await getCollection('resources'))
+  .sort((a, b) => b.data.published.getTime() - a.data.published.getTime())
+  .slice(0, 4);
+const news = (await getCollection('news'))
+  .sort((a, b) => b.data.published.getTime() - a.data.published.getTime())
+  .slice(0, 3);
+const formatDate = (date: Date) => new Intl.DateTimeFormat('zh-CN', {
+  year: 'numeric', month: '2-digit', day: '2-digit',
+}).format(date);
+---
+
+<BaseLayout>
+  <section class="home-lead" aria-labelledby="home-title">
+    <p class="eyebrow">资源分享 · 每周精选</p>
+    <h1 id="home-title">BlueSky 的<br />资源分享博客</h1>
+    <p>免费的游戏、工具与网络资源，以及每周值得关注的热门讯息。</p>
+  </section>
+
+  <div class="home-grid">
+    <section aria-labelledby="latest-resources">
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">Resources</p>
+          <h2 id="latest-resources">最近收录</h2>
+        </div>
+        <a class="text-link" href="/resources/">全部资源</a>
+      </div>
+      {resources.length === 0 && (
+        <div class="empty-home">
+          <p>还没有收录资源。</p>
+          <span>第一篇资源发布后，会出现在这里。</span>
+        </div>
+      )}
+      <div class="resource-list">
+        {resources.map((entry) => (
+          <article class="resource-item">
+            <div class="item-meta">
+              <span>{entry.data.category}</span>
+              <time datetime={entry.data.published.toISOString()}>{formatDate(entry.data.published)}</time>
+            </div>
+            <h3><a href={`/resources/${entry.id}/`}>{entry.data.title}</a></h3>
+            <p>{entry.data.description}</p>
+            <div class="item-foot">
+              <span>{entry.data.platform}</span>
+              <span>{entry.data.license}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <aside class="home-news" aria-labelledby="latest-news">
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">Weekly</p>
+          <h2 id="latest-news">本周热门</h2>
+        </div>
+        <a class="text-link" href="/news/">全部资讯</a>
+      </div>
+      {news.length === 0 && (
+        <div class="empty-home">
+          <p>本周还没有精选资讯。</p>
+          <span>有新内容时，再在这里慢慢补上。</span>
+        </div>
+      )}
+      <ol class="news-list">
+        {news.map((entry) => (
+          <li class="news-item">
+            <div class="item-meta">
+              <span>{entry.data.category}</span>
+              <time datetime={entry.data.published.toISOString()}>{formatDate(entry.data.published)}</time>
+            </div>
+            <h3><a href={`/news/#${entry.id}`}>{entry.data.title}</a></h3>
+            <p>{entry.data.description}</p>
+          </li>
+        ))}
+      </ol>
+    </aside>
+  </div>
+</BaseLayout>
