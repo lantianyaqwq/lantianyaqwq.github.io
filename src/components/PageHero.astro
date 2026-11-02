@@ -1,0 +1,22 @@
+---
+import Icon from './Icon.astro';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  description: string;
+  icon: 'folder' | 'news' | 'user';
+}
+const { eyebrow, title, description, icon } = Astro.props;
+---
+
+<header class="page-heading">
+  <div class="page-heading-copy">
+    <p class="eyebrow">{eyebrow}</p>
+    <h1>{title}</h1>
+    <p>{description}</p>
+  </div>
+  <div class="page-heading-icon" aria-hidden="true">
+    <Icon name={icon} size={30} />
+  </div>
+</header>

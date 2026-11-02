@@ -1,6 +1,9 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import Icon from '../../components/Icon.astro';
+import PageHero from '../../components/PageHero.astro';
 
 const resources = (await getCollection('resources'))
   .sort((a, b) => b.data.published.getTime() - a.data.published.getTime());
@@ -10,17 +13,21 @@ const formatDate = (date: Date) => new Intl.DateTimeFormat('zh-CN', {
 ---
 
 <BaseLayout title="网络资源" description="BlueSky 整理的免费游戏、工具与网络资源。">
-  <header class="page-heading">
-    <p class="eyebrow">Resource Index</p>
-    <h1>网络资源</h1>
-    <p>游戏、工具和网站，只收录免费资源。每项都写清用途、平台与注意事项。</p>
-  </header>
+  <PageHero
+    eyebrow="Resource Index"
+    title="网络资源"
+    description="游戏、工具和网站，只收录免费资源。每项都写清用途、平台与注意事项。"
+    icon="folder"
+  />
 
   {resources.length > 0 && (
     <div class="archive-tools">
       <label class="search-label" for="resource-search">
         搜索标题、分类或平台
-        <input id="resource-search" type="search" placeholder="例如：影音工具、Windows" autocomplete="off" />
+        <span class="search-input">
+          <Icon name="search" size={18} />
+          <input id="resource-search" type="search" placeholder="例如：影音工具、Windows" autocomplete="off" />
+        </span>
       </label>
       <span class="archive-count"><span id="result-count">{resources.length}</span> 条资源</span>
     </div>
@@ -47,11 +54,12 @@ const formatDate = (date: Date) => new Intl.DateTimeFormat('zh-CN', {
     ))}
   </div>
   {resources.length === 0 && (
-    <div class="empty-page">
-      <p class="eyebrow">Resource Index</p>
-      <h2>还没有收录资源</h2>
-      <p>等 BlueSky 准备好第一批资源，这里就会开始更新。</p>
-    </div>
+    <EmptyState
+      eyebrow="Resource Index"
+      icon="folder"
+      title="还没有收录资源"
+      description="等 BlueSky 准备好第一批资源，这里就会开始更新。"
+    />
   )}
   <p id="empty-state" class="empty-state" hidden>没有找到匹配的资源，换个关键词试试。</p>
 

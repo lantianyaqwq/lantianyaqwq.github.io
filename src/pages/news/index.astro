@@ -1,6 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import PageHero from '../../components/PageHero.astro';
 
 const news = (await getCollection('news'))
   .sort((a, b) => b.data.published.getTime() - a.data.published.getTime());
@@ -10,18 +12,20 @@ const formatDate = (date: Date) => new Intl.DateTimeFormat('zh-CN', {
 ---
 
 <BaseLayout title="热门资讯" description="BlueSky 的每周热门资讯精选，保留来源、日期与简短点评。">
-  <header class="page-heading">
-    <p class="eyebrow">Weekly Selection</p>
-    <h1>热门资讯</h1>
-    <p>不追求实时和全面，只挑选每周真正值得留意的消息，并留下来源和简短点评。</p>
-  </header>
+  <PageHero
+    eyebrow="Weekly Selection"
+    title="热门资讯"
+    description="不追求实时和全面，只挑选每周真正值得留意的消息，并留下来源和简短点评。"
+    icon="news"
+  />
 
   {news.length === 0 && (
-    <div class="empty-page">
-      <p class="eyebrow">Weekly Selection</p>
-      <h2>还没有热门资讯</h2>
-      <p>等 BlueSky 选出第一批值得分享的消息，这里就会开始更新。</p>
-    </div>
+    <EmptyState
+      eyebrow="Weekly Selection"
+      icon="news"
+      title="还没有热门资讯"
+      description="等 BlueSky 选出第一批值得分享的消息，这里就会开始更新。"
+    />
   )}
 
   <div class:list={["news-archive", { empty: news.length === 0 }]}>

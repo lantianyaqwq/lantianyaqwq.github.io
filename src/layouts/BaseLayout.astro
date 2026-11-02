@@ -18,6 +18,7 @@ const navItems = [
   { href: '/about/', label: '关于我' },
 ];
 const isCurrent = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href);
+const pageTitle = title === 'BlueSky' ? 'BlueSky · 资源分享与每周精选' : `${title} · BlueSky`;
 ---
 
 <!doctype html>
@@ -26,22 +27,30 @@ const isCurrent = (href: string) => href === '/' ? pathname === '/' : pathname.s
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#f7f6f2" />
+    <meta name="theme-color" content="#f4f6f3" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="zh_CN" />
-    <meta property="og:title" content={title === 'BlueSky' ? 'BlueSky · 资源分享与每周精选' : `${title} · BlueSky`} />
+    <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href} />
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href} />
     <link rel="alternate" type="application/rss+xml" title="BlueSky RSS" href={new URL('rss.xml', Astro.site ?? Astro.url.origin).href} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>{title === 'BlueSky' ? 'BlueSky · 资源分享与每周精选' : `${title} · BlueSky`}</title>
+    <title>{pageTitle}</title>
   </head>
   <body>
     <a class="skip-link" href="#main">跳到正文</a>
     <header class="site-header">
       <div class="shell header-inner">
-        <a class="brand" href="/" aria-label="BlueSky 首页">BlueSky<span aria-hidden="true">.</span></a>
+        <a class="brand" href="/" aria-label="BlueSky 首页">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="img" focusable="false"><path d="M7.2 18h9.1a4.2 4.2 0 0 0 .9-8.3 6.3 6.3 0 0 0-12.2 1.6A3.7 3.7 0 0 0 7.2 18Z" fill="currentColor" /></svg>
+          </span>
+          <span class="brand-copy">
+            <strong>BlueSky<span aria-hidden="true">.</span></strong>
+            <small>资源分享博客</small>
+          </span>
+        </a>
         <nav class="main-nav" aria-label="主导航">
           {navItems.map((item) => (
             <a href={item.href} class:list={[{ active: isCurrent(item.href) }]} aria-current={isCurrent(item.href) ? 'page' : undefined}>
@@ -58,8 +67,14 @@ const isCurrent = (href: string) => href === '/' ? pathname === '/' : pathname.s
 
     <footer class="site-footer">
       <div class="shell footer-inner">
-        <p><strong>BlueSky<span aria-hidden="true">.</span></strong> 免费资源与每周精选</p>
-        <p>由 BlueSky 持续整理，通常每周更新。</p>
+        <div class="footer-main">
+          <strong>BlueSky<span aria-hidden="true">.</span></strong>
+          <p>免费资源与每周精选，由 BlueSky 持续整理。</p>
+        </div>
+        <div class="footer-meta">
+          <span>通常每周更新</span>
+          <a href="/rss.xml">RSS 订阅</a>
+        </div>
       </div>
     </footer>
   </body>

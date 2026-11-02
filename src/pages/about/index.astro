@@ -1,23 +1,28 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/Icon.astro';
+import PageHero from '../../components/PageHero.astro';
 ---
 
 <BaseLayout title="关于我" description="关于 BlueSky 的资源分享博客。">
-  <header class="page-heading">
-    <p class="eyebrow">About</p>
-    <h1>关于我</h1>
-    <p>欢迎来到BlueSky的资源分享博客</p>
-  </header>
+  <PageHero
+    eyebrow="About"
+    title="关于我"
+    description="欢迎来到BlueSky的资源分享博客"
+    icon="user"
+  />
 
   <div class="about-content">
-    <section>
+    <section class="about-card">
+      <span class="about-card-icon" aria-hidden="true"><Icon name="spark" size={22} /></span>
       <h2>这里会分享什么</h2>
       <p>主要整理游戏、工具和其他网络资源，也会记录每周值得关注的热门讯息。资源只保留免费内容，并尽量写清用途、平台、授权和注意事项。</p>
     </section>
-    <section>
+    <section class="about-card">
+      <span class="about-card-icon" aria-hidden="true"><Icon name="clock" size={22} /></span>
       <h2>为什么做成博客</h2>
       <p>相比散落在聊天记录和收藏夹里的链接，这里更方便自己日后查找，也能让朋友直接浏览和搜索。热门资讯不追求快，而是留下来源和简短的个人点评。</p>
-      <span class="update-line">通常每周更新一次</span>
+      <span class="update-line"><Icon name="clock" size={14} />通常每周更新一次</span>
     </section>
   </div>
 </BaseLayout>
