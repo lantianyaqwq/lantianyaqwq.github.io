@@ -1,0 +1,692 @@
+---
+import '../styles/global.css';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="BlueSky 网站拥有者上传页" />
+    <meta name="theme-color" content="#f4f6f3" />
+    <title>拥有者上传 · BlueSky</title>
+    <style>
+      .owner-body {
+        min-height: 100vh;
+        background-image:
+          radial-gradient(circle at 8% 0%, rgba(132, 190, 212, 0.16), transparent 28rem),
+          radial-gradient(circle at 92% 12%, rgba(230, 183, 99, 0.1), transparent 24rem);
+      }
+      .owner-shell { width: min(calc(100% - 32px), 980px); margin-inline: auto; padding-block: 30px 70px; }
+      .owner-top { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+      .owner-brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font-family: var(--font-serif); font-size: 22px; font-weight: 700; }
+      .owner-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; background: linear-gradient(145deg, #66abc4, #2f7899); color: white; }
+      .owner-mark svg { width: 20px; height: 20px; }
+      .owner-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .owner-link, .owner-small-button {
+        display: inline-flex; align-items: center; min-height: 36px; padding: 7px 12px;
+        border: 1px solid var(--line-strong); border-radius: 10px; background: rgba(255,254,250,.76);
+        color: var(--muted); font-size: 12px; transition: color .16s ease, border-color .16s ease;
+      }
+      .owner-link:hover, .owner-small-button:hover { border-color: #afc6cc; color: var(--accent-dark); }
+      .owner-card {
+        margin-bottom: 18px; padding: 24px; border: 1px solid rgba(205,216,218,.72); border-radius: 22px;
+        background: var(--surface); box-shadow: var(--shadow-sm);
+      }
+      .owner-card > h1, .owner-card > h2 { margin: 0 0 8px; font-family: var(--font-serif); letter-spacing: -0.5px; }
+      .owner-card > h1 { font-size: 32px; }
+      .owner-card > h2 { font-size: 20px; }
+      .owner-intro { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.9; }
+      .owner-warning { margin-top: 14px; padding: 12px 14px; border: 1px solid rgba(230,183,99,.24); border-radius: 12px; background: #faf4e7; color: var(--muted); font-size: 12px; line-height: 1.8; }
+      .token-help { margin-top: 14px; color: var(--muted); font-size: 13px; }
+      .token-help summary { cursor: pointer; color: var(--accent-dark); font-weight: 650; }
+      .token-help ol { margin: 10px 0 0; padding-left: 1.4em; }
+      .token-help li + li { margin-top: 6px; }
+      .owner-form { display: grid; gap: 18px; }
+      .owner-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+      .owner-field { display: grid; gap: 7px; min-width: 0; }
+      .owner-field.full { grid-column: 1 / -1; }
+      .owner-field > span { color: var(--muted); font-size: 12px; font-weight: 650; }
+      .owner-field input, .owner-field textarea {
+        width: 100%; border: 1px solid var(--line-strong); border-radius: 12px; background: rgba(255,254,250,.9);
+        color: var(--ink); font: inherit; outline: none; transition: border-color .16s ease, box-shadow .16s ease;
+      }
+      .owner-field input { height: 44px; padding: 0 13px; }
+      .owner-field textarea { min-height: 180px; padding: 12px 13px; resize: vertical; line-height: 1.8; }
+      .owner-field input:focus, .owner-field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(57,127,159,.1); }
+      .token-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; }
+      .type-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .type-option { position: relative; }
+      .type-option input { position: absolute; opacity: 0; pointer-events: none; }
+      .type-option span {
+        display: grid; gap: 3px; padding: 14px; border: 1px solid var(--line-strong); border-radius: 14px;
+        background: rgba(255,254,250,.7); cursor: pointer; transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
+      }
+      .type-option strong { font-size: 15px; }
+      .type-option small { color: var(--muted); font-size: 12px; line-height: 1.6; }
+      .type-option input:checked + span { border-color: var(--accent); background: var(--accent-faint); box-shadow: 0 0 0 4px rgba(57,127,159,.08); }
+      .owner-check { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+      .owner-submit-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+      .owner-submit { min-height: 44px; padding: 10px 18px; border: 0; border-radius: 12px; background: linear-gradient(135deg,#438eaa,#27667f); color: white; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px rgba(39,102,127,.2); transition: transform .16s ease, box-shadow .16s ease; }
+      .owner-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 25px rgba(39,102,127,.25); }
+      .owner-submit:disabled { opacity: .62; cursor: wait; }
+      .owner-secondary { min-height: 42px; padding: 9px 14px; border: 1px solid var(--line-strong); border-radius: 12px; background: rgba(255,254,250,.78); color: var(--ink-soft); cursor: pointer; }
+      .image-grid { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 16px; align-items: start; }
+      .image-picker { display: grid; gap: 12px; }
+      .image-drop {
+        display: grid; place-items: center; min-height: 170px; padding: 18px; border: 1px dashed #b9cdd2; border-radius: 16px;
+        background: linear-gradient(145deg, rgba(255,254,250,.9), rgba(240,247,249,.72)); text-align: center; cursor: pointer;
+        transition: border-color .16s ease, background-color .16s ease;
+      }
+      .image-drop:hover { border-color: var(--accent); }
+      .image-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+      .image-drop strong { display: block; margin-bottom: 5px; color: var(--ink); font-size: 15px; }
+      .image-drop small { color: var(--muted); font-size: 12px; line-height: 1.7; }
+      .image-preview-wrap { display: grid; gap: 8px; }
+      .image-preview { display: none; width: 100%; max-height: 220px; object-fit: contain; border: 1px solid var(--line); border-radius: 14px; background: repeating-conic-gradient(#f2f4f2 0 25%, #fff 0 50%) 0 0 / 18px 18px; }
+      .image-preview.show { display: block; }
+      .image-preview-name { color: var(--faint); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+      .image-result { display: none; margin-top: 14px; padding: 14px; border: 1px solid rgba(57,127,159,.18); border-radius: 14px; background: var(--accent-faint); }
+      .image-result.show { display: grid; gap: 10px; }
+      .image-url { width: 100%; padding: 9px 11px; border: 1px solid var(--line-strong); border-radius: 10px; background: rgba(255,254,250,.88); color: var(--accent-dark); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; overflow-wrap: anywhere; }
+      .image-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .owner-status { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.8; }
+      .owner-status.show { display: block; }
+      .owner-status.success { border: 1px solid rgba(57,127,159,.22); background: var(--accent-faint); color: var(--accent-dark); }
+      .owner-status.error { border: 1px solid rgba(170,80,70,.2); background: #faeeee; color: #8b4039; }
+      .owner-status a { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+      @media (max-width: 720px) {
+        .owner-shell { width: min(calc(100% - 22px), 980px); padding-block: 18px 46px; }
+        .owner-top { align-items: flex-start; flex-direction: column; }
+        .owner-actions { width: 100%; }
+        .owner-card { padding: 19px; border-radius: 18px; }
+        .owner-card > h1 { font-size: 27px; }
+        .owner-grid, .type-grid, .token-row, .image-grid { grid-template-columns: 1fr; }
+        .owner-field textarea { min-height: 150px; }
+      }
+    </style>
+  </head>
+  <body class="owner-body">
+    <main class="owner-shell">
+      <div class="owner-top">
+        <a class="owner-brand" href="/">
+          <span class="owner-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7.2 18h9.1a4.2 4.2 0 0 0 .9-8.3 6.3 6.3 0 0 0-12.2 1.6A3.7 3.7 0 0 0 7.2 18Z" fill="currentColor" /></svg></span>
+          BlueSky.
+        </a>
+        <div class="owner-actions">
+          <a class="owner-link" href="/">返回网站</a>
+          <a class="owner-link" href="https://github.com/lantianyaqwq/lantianyaqwq.github.io" target="_blank" rel="noreferrer">打开仓库</a>
+        </div>
+      </div>
+
+      <section class="owner-card">
+        <h1>拥有者上传</h1>
+        <p class="owner-intro">在这里新增网络资源或每周热门资讯。提交成功后会写入 GitHub 仓库的 Markdown 内容文件，并由 GitHub Actions 自动更新网站。</p>
+        <p class="owner-warning">这是纯静态网站后台：页面本身不保存账号密码，只有在本机输入有仓库写入权限的 GitHub 令牌后才能提交。不要在公共设备开启“记住令牌”。</p>
+        <details class="token-help">
+          <summary>第一次使用：创建仅限本仓库的 GitHub 令牌</summary>
+          <ol>
+            <li>打开 GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens。</li>
+            <li>选择 Generate new token，名称可填写 <strong>BlueSky Website Upload</strong>。</li>
+            <li>Repository access 选择 <strong>Only select repositories</strong>，只勾选 <strong>lantianyaqwq.github.io</strong>。</li>
+            <li>Repository permissions 中把 <strong>Contents</strong> 设置为 <strong>Read and write</strong>，其他权限保持 No access。</li>
+            <li>设置较短有效期并创建；令牌只显示一次，复制后粘贴到下方，不要发给任何人。</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="owner-card">
+        <form id="upload-form" class="owner-form">
+          <div class="owner-field full">
+            <span>GitHub 访问令牌</span>
+            <div class="token-row">
+              <input id="token" type="password" placeholder="github_pat_..." autocomplete="off" />
+              <button class="owner-small-button" type="button" id="toggle-token">显示</button>
+              <button class="owner-small-button" type="button" id="clear-token">清除</button>
+            </div>
+            <label class="owner-check"><input id="remember-token" type="checkbox" /> 仅在这台个人设备上记住令牌</label>
+          </div>
+
+          <div class="owner-field full">
+            <span>内容类型</span>
+            <div class="type-grid">
+              <label class="type-option">
+                <input type="radio" name="type" value="resource" checked />
+                <span><strong>网络资源</strong><small>工具、游戏、网站等免费资源，会生成独立详情页</small></span>
+              </label>
+              <label class="type-option">
+                <input type="radio" name="type" value="news" />
+                <span><strong>热门资讯</strong><small>每周精选消息，保留来源和一句点评</small></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="owner-grid">
+            <label class="owner-field">
+              <span>标题</span>
+              <input id="title" required maxlength="80" placeholder="例如：Krita：数字绘画工具" />
+            </label>
+            <label class="owner-field">
+              <span>发布日期</span>
+              <input id="published" type="date" required />
+            </label>
+          </div>
+
+          <div class="owner-grid">
+            <label class="owner-field">
+              <span>分类</span>
+              <input id="category" required maxlength="30" placeholder="例如：系统工具 / 游戏 / 工具" />
+            </label>
+            <label class="owner-field">
+              <span>文件名（可选）</span>
+              <input id="slug" maxlength="80" placeholder="例如：krita" />
+            </label>
+          </div>
+
+          <div class="owner-grid" data-resource-only>
+            <label class="owner-field">
+              <span>适用平台</span>
+              <input id="platform" maxlength="60" placeholder="例如：Windows / macOS / Linux" />
+            </label>
+            <label class="owner-field">
+              <span>授权类型</span>
+              <input id="license" maxlength="60" placeholder="例如：免费开源 / 免费使用" />
+            </label>
+          </div>
+
+          <div class="owner-grid" data-resource-only>
+            <label class="owner-field full">
+              <span>资源链接（可选）</span>
+              <input id="resource-link" type="url" placeholder="https://..." />
+            </label>
+          </div>
+
+          <div class="owner-grid" data-news-only hidden>
+            <label class="owner-field">
+              <span>来源名称</span>
+              <input id="source" maxlength="60" placeholder="例如：BlueSky 每周精选" />
+            </label>
+            <label class="owner-field">
+              <span>来源链接（可选）</span>
+              <input id="source-link" type="url" placeholder="https://..." />
+            </label>
+          </div>
+
+          <label class="owner-field full">
+            <span>摘要</span>
+            <textarea id="description" required maxlength="180" placeholder="用一两句话说明它是什么、适合谁，或这条消息为什么值得留意。"></textarea>
+          </label>
+
+          <label class="owner-field full">
+            <span>正文（Markdown，可选）</span>
+            <textarea id="body" placeholder="## 它能做什么&#10;&#10;## 适合谁&#10;&#10;## 注意事项"></textarea>
+          </label>
+
+          <div class="owner-submit-row">
+            <button class="owner-submit" id="submit-button" type="submit">提交并更新网站</button>
+            <button class="owner-secondary" id="copy-markdown" type="button">复制 Markdown</button>
+            <a class="owner-link" href="https://github.com/lantianyaqwq/lantianyaqwq.github.io/actions" target="_blank" rel="noreferrer">查看部署状态</a>
+          </div>
+          <div id="status" class="owner-status" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <section class="owner-card" aria-labelledby="image-upload-title">
+        <h2 id="image-upload-title">上传图片</h2>
+        <p class="owner-intro">图片会提交到仓库的 <strong>public/uploads/</strong> 目录，并获得可直接用于正文的网站地址。支持 JPG、PNG、WebP、GIF，单个文件不超过 5 MB。</p>
+        <div class="image-grid">
+          <div class="image-picker">
+            <label class="image-drop" for="image-file">
+              <input id="image-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+              <span>
+                <strong>选择图片</strong>
+                <small>建议先把无关信息裁掉；上传后会通过 GitHub Actions 发布。</small>
+              </span>
+            </label>
+            <label class="owner-field">
+              <span>图片说明（alt）</span>
+              <input id="image-alt" maxlength="80" placeholder="例如：软件主界面截图" />
+            </label>
+            <div class="owner-submit-row">
+              <button class="owner-submit" id="upload-image-button" type="button">上传图片</button>
+              <button class="owner-secondary" id="copy-image-markdown" type="button" disabled>复制图片 Markdown</button>
+              <button class="owner-secondary" id="insert-image" type="button" disabled>插入正文</button>
+            </div>
+            <div id="image-status" class="owner-status" role="status" aria-live="polite"></div>
+          </div>
+          <div class="image-preview-wrap">
+            <img id="image-preview" class="image-preview" alt="待上传图片预览" />
+            <div id="image-preview-name" class="image-preview-name">尚未选择图片</div>
+          </div>
+        </div>
+        <div id="image-result" class="image-result">
+          <span class="owner-field"><span>图片地址</span><code id="image-url" class="image-url"></code></span>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const API = 'https://api.github.com/repos/lantianyaqwq/lantianyaqwq.github.io';
+      const TOKEN_KEY = 'bluesky-owner-github-token';
+      const form = document.querySelector<HTMLFormElement>('#upload-form');
+      const tokenInput = document.querySelector<HTMLInputElement>('#token');
+      const rememberToken = document.querySelector<HTMLInputElement>('#remember-token');
+      const submitButton = document.querySelector<HTMLButtonElement>('#submit-button');
+      const copyButton = document.querySelector<HTMLButtonElement>('#copy-markdown');
+      const statusBox = document.querySelector<HTMLDivElement>('#status');
+      const imageFile = document.querySelector<HTMLInputElement>('#image-file');
+      const imageAlt = document.querySelector<HTMLInputElement>('#image-alt');
+      const imagePreview = document.querySelector<HTMLImageElement>('#image-preview');
+      const imagePreviewName = document.querySelector<HTMLDivElement>('#image-preview-name');
+      const imageButton = document.querySelector<HTMLButtonElement>('#upload-image-button');
+      const copyImageButton = document.querySelector<HTMLButtonElement>('#copy-image-markdown');
+      const insertImageButton = document.querySelector<HTMLButtonElement>('#insert-image');
+      const imageStatusBox = document.querySelector<HTMLDivElement>('#image-status');
+      const imageResult = document.querySelector<HTMLDivElement>('#image-result');
+      const imageUrl = document.querySelector<HTMLElement>('#image-url');
+      let currentImageMarkdown = '';
+      let currentImageFile: File | null = null;
+      const fields = {
+        title: document.querySelector<HTMLInputElement>('#title'),
+        published: document.querySelector<HTMLInputElement>('#published'),
+        category: document.querySelector<HTMLInputElement>('#category'),
+        slug: document.querySelector<HTMLInputElement>('#slug'),
+        platform: document.querySelector<HTMLInputElement>('#platform'),
+        license: document.querySelector<HTMLInputElement>('#license'),
+        resourceLink: document.querySelector<HTMLInputElement>('#resource-link'),
+        source: document.querySelector<HTMLInputElement>('#source'),
+        sourceLink: document.querySelector<HTMLInputElement>('#source-link'),
+        description: document.querySelector<HTMLTextAreaElement>('#description'),
+        body: document.querySelector<HTMLTextAreaElement>('#body'),
+      };
+
+      function setStatus(message: string, type: 'success' | 'error' | '' = '', link?: { href: string; label: string }) {
+        if (!statusBox) return;
+        statusBox.className = 'owner-status';
+        statusBox.replaceChildren();
+        if (!message) return;
+        statusBox.classList.add('show', type);
+        statusBox.append(message);
+        if (link) {
+          statusBox.append(' ');
+          const anchor = document.createElement('a');
+          anchor.href = link.href;
+          anchor.target = '_blank';
+          anchor.rel = 'noreferrer';
+          anchor.textContent = link.label;
+          statusBox.append(anchor);
+        }
+      }
+
+      function setImageStatus(message: string, type: 'success' | 'error' | '' = '', link?: { href: string; label: string }) {
+        if (!imageStatusBox) return;
+        imageStatusBox.className = 'owner-status';
+        imageStatusBox.replaceChildren();
+        if (!message) return;
+        imageStatusBox.classList.add('show', type);
+        imageStatusBox.append(message);
+        if (link) {
+          imageStatusBox.append(' ');
+          const anchor = document.createElement('a');
+          anchor.href = link.href;
+          anchor.target = '_blank';
+          anchor.rel = 'noreferrer';
+          anchor.textContent = link.label;
+          imageStatusBox.append(anchor);
+        }
+      }
+
+      function setImageBusy(busy: boolean) {
+        if (imageButton) {
+          imageButton.disabled = busy;
+          imageButton.textContent = busy ? '正在上传…' : '上传图片';
+        }
+      }
+
+      function resetImageResult() {
+        currentImageMarkdown = '';
+        if (imageResult) imageResult.classList.remove('show');
+        if (imageUrl) imageUrl.textContent = '';
+        if (copyImageButton) copyImageButton.disabled = true;
+        if (insertImageButton) insertImageButton.disabled = true;
+      }
+
+      function setCurrentImage(siteUrl: string, markdown: string) {
+        currentImageMarkdown = markdown;
+        if (imageUrl) imageUrl.textContent = siteUrl;
+        if (imageResult) imageResult.classList.add('show');
+        if (copyImageButton) copyImageButton.disabled = false;
+        if (insertImageButton) insertImageButton.disabled = false;
+      }
+
+      function fileToBase64(file: File) {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.addEventListener('load', () => resolve(String(reader.result).split(',')[1] ?? ''));
+          reader.addEventListener('error', () => reject(new Error('读取图片失败，请重新选择。')));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function getImageFileInfo(file: File) {
+        const allowed: Record<string, string[]> = {
+          'image/jpeg': ['jpg', 'jpeg'],
+          'image/png': ['png'],
+          'image/webp': ['webp'],
+          'image/gif': ['gif'],
+        };
+        const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
+        if (!allowed[file.type] || !allowed[file.type].includes(extension)) {
+          throw new Error('仅支持 JPG、PNG、WebP 或 GIF 图片，且文件扩展名需要与格式一致。');
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          throw new Error('图片超过 5 MB，请先压缩后再上传。');
+        }
+        const stem = file.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'image';
+        const now = new Date();
+        const year = String(now.getFullYear());
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const filename = `${stem}-${Date.now().toString(36)}.${extension}`;
+        const path = `public/uploads/${year}/${month}/${filename}`;
+        return { extension, path, siteUrl: path.replace(/^public/, '') };
+      }
+
+      function markdownAlt(value: string) {
+        return value.trim().replace(/[[\]]/g, '') || '图片';
+      }
+
+      function getType() {
+        return document.querySelector<HTMLInputElement>('input[name="type"]:checked')?.value ?? 'resource';
+      }
+
+      function updateTypeFields() {
+        const type = getType();
+        document.querySelectorAll<HTMLElement>('[data-resource-only]').forEach((element) => {
+          element.hidden = type !== 'resource';
+        });
+        document.querySelectorAll<HTMLElement>('[data-news-only]').forEach((element) => {
+          element.hidden = type !== 'news';
+        });
+        if (fields.category) fields.category.placeholder = type === 'resource' ? '例如：系统工具 / 创作工具' : '例如：游戏 / 工具 / 网络文化';
+        if (fields.slug) fields.slug.placeholder = type === 'resource' ? '例如：krita' : '例如：weekly-picks';
+      }
+
+      function localDate() {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        return now.toISOString().slice(0, 10);
+      }
+
+      function defaultSlug(type: string) {
+        const date = (fields.published?.value || localDate()).replaceAll('-', '');
+        return `${type}-${date}`;
+      }
+
+      function yamlString(value: string) {
+        return `"${value.trim().replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r?\n/g, ' ')}"`;
+      }
+
+      function getFormData() {
+        const type = getType();
+        return {
+          type,
+          title: fields.title?.value.trim() ?? '',
+          published: fields.published?.value || localDate(),
+          category: fields.category?.value.trim() ?? '',
+          slug: fields.slug?.value.trim() || defaultSlug(type),
+          platform: fields.platform?.value.trim() || '未注明',
+          license: fields.license?.value.trim() || '免费',
+          resourceLink: fields.resourceLink?.value.trim() ?? '',
+          source: fields.source?.value.trim() || 'BlueSky 每周精选',
+          sourceLink: fields.sourceLink?.value.trim() ?? '',
+          description: fields.description?.value.trim() ?? '',
+          body: fields.body?.value.trim() ?? '',
+        };
+      }
+
+      function buildMarkdown(data = getFormData()) {
+        const linkLine = data.type === 'resource'
+          ? (data.resourceLink ? `官方链接：${data.resourceLink}\n\n` : '')
+          : (data.sourceLink ? `原始来源：${data.sourceLink}\n\n` : '');
+        const frontmatter = data.type === 'resource'
+          ? [
+              '---',
+              `title: ${yamlString(data.title)}`,
+              `description: ${yamlString(data.description)}`,
+              `category: ${yamlString(data.category)}`,
+              `platform: ${yamlString(data.platform)}`,
+              `license: ${yamlString(data.license)}`,
+              `published: ${data.published}`,
+              '---',
+            ].join('\n')
+          : [
+              '---',
+              `title: ${yamlString(data.title)}`,
+              `description: ${yamlString(data.description)}`,
+              `category: ${yamlString(data.category)}`,
+              `source: ${yamlString(data.source)}`,
+              `published: ${data.published}`,
+              '---',
+            ].join('\n');
+        return `${frontmatter}\n\n${linkLine}${data.body}\n`.replace(/\n{3,}/g, '\n\n');
+      }
+
+      function utf8ToBase64(text: string) {
+        const bytes = new TextEncoder().encode(text);
+        let binary = '';
+        bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+        return btoa(binary);
+      }
+
+      function encodePath(path: string) {
+        return path.split('/').map(encodeURIComponent).join('/');
+      }
+
+      async function github(path: string, options: { method?: string; body?: unknown; allow404?: boolean } = {}) {
+        const token = tokenInput?.value.trim();
+        if (!token) throw new Error('请先输入 GitHub 访问令牌。');
+        const response = await fetch(API + path, {
+          method: options.method ?? 'GET',
+          headers: {
+            Accept: 'application/vnd.github+json',
+            Authorization: `Bearer ${token}`,
+            'X-GitHub-Api-Version': '2022-11-28',
+          },
+          body: options.body === undefined ? undefined : JSON.stringify(options.body),
+        });
+        if (response.status === 404 && options.allow404) return null;
+        const data = await response.json();
+        if (!response.ok) {
+          const detail = data?.message ? `（${data.message}）` : '';
+          throw new Error(`GitHub 请求失败：${response.status}${detail}`);
+        }
+        return data;
+      }
+
+      function setBusy(busy: boolean) {
+        if (submitButton) {
+          submitButton.disabled = busy;
+          submitButton.textContent = busy ? '正在提交…' : '提交并更新网站';
+        }
+      }
+
+      function saveTokenPreference() {
+        if (!tokenInput || !rememberToken) return;
+        if (rememberToken.checked && tokenInput.value.trim()) {
+          localStorage.setItem(TOKEN_KEY, tokenInput.value.trim());
+        } else {
+          localStorage.removeItem(TOKEN_KEY);
+        }
+      }
+
+      document.querySelectorAll<HTMLInputElement>('input[name="type"]').forEach((input) => {
+        input.addEventListener('change', updateTypeFields);
+      });
+
+      document.querySelector<HTMLButtonElement>('#toggle-token')?.addEventListener('click', () => {
+        if (!tokenInput) return;
+        tokenInput.type = tokenInput.type === 'password' ? 'text' : 'password';
+        document.querySelector<HTMLButtonElement>('#toggle-token')!.textContent = tokenInput.type === 'password' ? '显示' : '隐藏';
+      });
+
+      document.querySelector<HTMLButtonElement>('#clear-token')?.addEventListener('click', () => {
+        if (tokenInput) tokenInput.value = '';
+        if (rememberToken) rememberToken.checked = false;
+        localStorage.removeItem(TOKEN_KEY);
+        setStatus('已清除本机保存的令牌。', 'success');
+      });
+
+      copyButton?.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(buildMarkdown());
+          setStatus('Markdown 已复制，可以备份或手动提交。', 'success');
+        } catch {
+          setStatus('复制失败，请手动全选正文内容。', 'error');
+        }
+      });
+
+      imageFile?.addEventListener('change', () => {
+        const file = imageFile.files?.[0] ?? null;
+        resetImageResult();
+        setImageStatus('');
+        currentImageFile = file;
+        if (!file) {
+          if (imagePreview) {
+            imagePreview.removeAttribute('src');
+            imagePreview.classList.remove('show');
+          }
+          if (imagePreviewName) imagePreviewName.textContent = '尚未选择图片';
+          return;
+        }
+        try {
+          getImageFileInfo(file);
+          if (imagePreview) {
+            imagePreview.src = URL.createObjectURL(file);
+            imagePreview.classList.add('show');
+          }
+          if (imagePreviewName) imagePreviewName.textContent = `${file.name} · ${(file.size / 1024).toFixed(1)} KB`;
+        } catch (error) {
+          imageFile.value = '';
+          currentImageFile = null;
+          if (imagePreview) imagePreview.classList.remove('show');
+          if (imagePreviewName) imagePreviewName.textContent = '尚未选择图片';
+          setImageStatus(error instanceof Error ? error.message : '图片格式不正确。', 'error');
+        }
+      });
+
+      imageButton?.addEventListener('click', async () => {
+        setImageStatus('');
+        resetImageResult();
+        saveTokenPreference();
+        const file = currentImageFile;
+        if (!file) {
+          setImageStatus('请先选择要上传的图片。', 'error');
+          return;
+        }
+        setImageBusy(true);
+        try {
+          const info = getImageFileInfo(file);
+          const content = await fileToBase64(file);
+          const existing = await github(`/contents/${encodePath(info.path)}?ref=main`, { allow404: true });
+          const payload: Record<string, string> = {
+            message: `Add image: ${file.name}`,
+            content,
+            branch: 'main',
+          };
+          if (existing?.sha) payload.sha = existing.sha;
+          const result = await github(`/contents/${encodePath(info.path)}`, { method: 'PUT', body: payload });
+          const alt = markdownAlt(imageAlt?.value ?? file.name);
+          const markdown = `![${alt}](${info.siteUrl})`;
+          setCurrentImage(info.siteUrl, markdown);
+          saveTokenPreference();
+          setImageStatus(
+            '图片已提交。网站地址已生成，可以复制 Markdown 或插入正文。',
+            'success',
+            { href: result?.commit?.html_url ?? 'https://github.com/lantianyaqwq/lantianyaqwq.github.io/actions', label: '查看本次提交' },
+          );
+        } catch (error) {
+          const message = error instanceof Error ? error.message : '图片上传失败，请稍后重试。';
+          setImageStatus(message.includes('403') ? `${message} 请确认令牌只授权了目标仓库，并且 Contents 权限为 Read and write。` : message, 'error');
+        } finally {
+          setImageBusy(false);
+        }
+      });
+
+      copyImageButton?.addEventListener('click', async () => {
+        if (!currentImageMarkdown) return;
+        try {
+          await navigator.clipboard.writeText(currentImageMarkdown);
+          setImageStatus('图片 Markdown 已复制。', 'success');
+        } catch {
+          setImageStatus('复制失败，请手动复制图片地址。', 'error');
+        }
+      });
+
+      insertImageButton?.addEventListener('click', () => {
+        if (!currentImageMarkdown || !fields.body) return;
+        const insertion = `\n\n${currentImageMarkdown}\n\n`;
+        if (typeof fields.body.setRangeText === 'function') {
+          const start = fields.body.selectionStart ?? fields.body.value.length;
+          const end = fields.body.selectionEnd ?? fields.body.value.length;
+          fields.body.setRangeText(insertion, start, end, 'end');
+        } else {
+          fields.body.value += insertion;
+        }
+        fields.body.dispatchEvent(new Event('input', { bubbles: true }));
+        fields.body.focus();
+        setImageStatus('已插入正文末尾或当前光标位置。', 'success');
+      });
+
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setStatus('');
+        saveTokenPreference();
+        const data = getFormData();
+        if (!/^[a-z0-9][a-z0-9-]{1,80}$/.test(data.slug)) {
+          setStatus('文件名只能使用小写英文、数字和连字符，并以字母或数字开头。', 'error');
+          return;
+        }
+        const directory = data.type === 'resource' ? 'src/content/resources' : 'src/content/news';
+        const path = `${directory}/${data.slug}.md`;
+        setBusy(true);
+        try {
+          await github('');
+          const existing = await github(`/contents/${encodePath(path)}?ref=main`, { allow404: true });
+          const payload: Record<string, string> = {
+            message: `${existing ? 'Update' : 'Add'} ${data.type}: ${data.title}`,
+            content: utf8ToBase64(buildMarkdown(data)),
+            branch: 'main',
+          };
+          if (existing?.sha) payload.sha = existing.sha;
+          const result = await github(`/contents/${encodePath(path)}`, { method: 'PUT', body: payload });
+          saveTokenPreference();
+          setStatus(
+            '提交成功。GitHub Actions 会自动构建并发布，通常一两分钟内生效。',
+            'success',
+            { href: result?.commit?.html_url ?? 'https://github.com/lantianyaqwq/lantianyaqwq.github.io/actions', label: '查看本次提交' },
+          );
+          if (fields.title) fields.title.value = '';
+          if (fields.description) fields.description.value = '';
+          if (fields.body) fields.body.value = '';
+          if (fields.slug) fields.slug.value = '';
+          if (fields.resourceLink) fields.resourceLink.value = '';
+          if (fields.sourceLink) fields.sourceLink.value = '';
+        } catch (error) {
+          const message = error instanceof Error ? error.message : '提交失败，请稍后重试。';
+          setStatus(message.includes('403') ? `${message} 请确认令牌只授权了目标仓库，并且 Contents 权限为 Read and write。` : message, 'error');
+        } finally {
+          setBusy(false);
+        }
+      });
+
+      if (fields.published) fields.published.value = localDate();
+      const storedToken = localStorage.getItem(TOKEN_KEY);
+      if (storedToken && tokenInput && rememberToken) {
+        tokenInput.value = storedToken;
+        rememberToken.checked = true;
+      }
+      updateTypeFields();
+    </script>
+  </body>
+</html>
